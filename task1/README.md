@@ -1,5 +1,6 @@
 # go-lang-datastore-react-crud
 
+Modify based on https://github.com/knowledgefactory4u/go-lang-reactjs-mysql-crud, for learning purposes only
 ## Backend local setup
 
 **Run the backend app**
