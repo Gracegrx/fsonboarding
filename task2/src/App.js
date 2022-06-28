@@ -8,7 +8,7 @@ import {
   snapshotEqual,
   doc,
   addDoc,
-  deleteDoc
+  deleteDoc,
 } from "firebase/firestore";
 
 function App() {
@@ -115,42 +115,68 @@ function App() {
     deleteDoc(doc(db, "recipes", id));
   }
 
+  // For retrieve data from firestore
+  const [search, setSearch] = useState("");
+  const [filteredContacts, setFilteredContacts] = useState([]);
+
+  useEffect(() => {
+    setFilteredContacts(
+        recipes.filter(
+        (recipe) => {
+          if (recipe.title.toLowerCase().includes(search.toLowerCase())) {
+            recipe.selected = false;
+            return true;
+          }
+          recipe.selected = false;
+          return false;
+        })
+    );
+  }, [search, recipes]);
+
   return (
     <div className="App">
       <h1>My Recipe Collection</h1>
 
+      <div>
+        <input
+          type="text"
+          placeholder="Search"
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+
       <button onClick={() => setPopupActive(!popupActive)}>Add Recipe</button>
 
       <div className="recipes">
-        { recipes.map((recipe, i) => (
-          <div className="recipe" key={recipe.id}>
-            <h3>{ recipe.title }</h3>
-            <p dangerouslySetInnerHTML={{ __html:recipe.desc }}></p>
+        { filteredContacts.map((recipe, i) => (
+            <div className="recipe" key={recipe.id}>
+              <h3>{ recipe.title }</h3>
+              <p dangerouslySetInnerHTML={{ __html:recipe.desc }}></p>
 
-            { recipe.viewing && <div>
-              <h4>Ingredients</h4>
-              <ul>
-                { recipe.ingredients.map((ingredient, i) => (
-                  <li key={i}>{ ingredient }</li>
-                ))}
-              </ul>
+              { recipe.viewing && <div>
+                <h4>Ingredients</h4>
+                <ul>
+                  { recipe.ingredients.map((ingredient, i) => (
+                    <li key={i}>{ ingredient }</li>
+                  ))}
+                </ul>
 
-              <h4>Instructions</h4>
-              <ol>
-                { recipe.instructions.map((instruction, i) => (
-                  <li key={i}>{ instruction }</li>
-                ))}
-              </ol>
-            </div>}
+                <h4>Instructions</h4>
+                <ol>
+                  { recipe.instructions.map((instruction, i) => (
+                    <li key={i}>{ instruction }</li>
+                  ))}
+                </ol>
+              </div>}
 
-            <div className="buttons">
-              <button onClick={() => handleView(recipe.id)}>View { recipe.viewing ? "less" : "more" }</button>
-              <button className="remove" onClick={() => removeRecipe(recipe.id)}>Remove</button>
+              <div className="buttons">
+                <button onClick={() => handleView(recipe.id)}>View { recipe.viewing ? "less" : "more" }</button>
+                <button className="remove" onClick={() => removeRecipe(recipe.id)}>Remove</button>
+              </div>
+
+
             </div>
-
-
-          </div>
-        ))}
+          ))}
       </div>
 
       { popupActive && <div className="popup">
@@ -207,13 +233,9 @@ function App() {
             <button type="button" className="remove" onClick={() => setPopupActive(false)}>Close</button>
           </div>
 
-
-
           </form>
           </div>
-        
         </div>}
-
     </div>
   );
 }
