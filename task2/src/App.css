@@ -4,6 +4,7 @@
   --darker: #262336;
   --blue: #61DAFB;
   --crimson: #DB3052;
+  --yellow: #dcd73d;
 }
 
 * {
@@ -74,6 +75,10 @@ button {
 button.remove {
   color: var(--light);
   background-color: var(--crimson);
+}
+
+button.rate {
+  background-color: var(--yellow);
 }
 
 h4 {
