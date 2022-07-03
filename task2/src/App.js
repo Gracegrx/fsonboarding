@@ -6,6 +6,7 @@ import {
   onSnapshot,
   doc,
   addDoc,
+  getDoc,
   updateDoc,
   deleteDoc,
   query,
@@ -85,7 +86,7 @@ function App() {
     setPopupActive(false);
   }
 
-  const handleIngredient = (e,i) => {
+  const handleIngredient = (e,i,form) => {
     const ingredientsClone = [...form.ingredients];
     ingredientsClone[i] = e.target.value;
 
@@ -95,7 +96,7 @@ function App() {
     })
   }
 
-  const handleInstruction = (e,i) => {
+  const handleInstruction = (e,i,form) => {
     const instructionsClone = [...form.instructions];
     instructionsClone[i] = e.target.value;
 
@@ -105,14 +106,14 @@ function App() {
     })
   }
 
-  const handleIngredientCount = () => {
+  const handleIngredientCount = (form) => {
     setForm({
       ...form,
       ingredients: [...form.ingredients, ""]
     })
   }
 
-  const handleInstructionCount = () => {
+  const handleInstructionCount = (form) => {
     setForm({
       ...form,
       instructions: [...form.instructions, ""]
@@ -147,6 +148,30 @@ function App() {
     })
   }
 
+  const handleUpdate = (e, id, updateForm) => {
+    // Stops the page from refreshing
+    e.preventDefault();
+    if (
+      !updateForm.title ||
+      !updateForm.desc
+    ) {
+      alert("please fill in all fields")
+      return
+    }
+
+    recipes.forEach(recipe => {
+      if (recipe.id === id) {
+        const curDocRef = doc(db, "recipes", id);
+
+        updateDoc(curDocRef, {
+          "title": updateForm.title,
+          "desc": updateForm.desc
+        });
+        return;
+      }
+    })
+  }
+
   // For retrieve data from firestore
   const [search, setSearch] = useState("");
   const [filteredRecipes, setFilteredRecipes] = useState([]);
@@ -167,6 +192,7 @@ function App() {
 
   const Recipe = ({recipe, i}) => {
     const [popupRatingActive, setPopupRatingActive] = useState(false);
+    const [popupUpdateActive, setPopupUpdateActive] = useState(false);
     return(
       <div className="recipe" key={recipe.id}>
         <h3>{ recipe.title }</h3>
@@ -193,17 +219,19 @@ function App() {
         <div className="buttons">
           <button onClick={() => handleView(recipe.id)}>View { recipe.viewing ? "less" : "more" }</button>
           <button className="remove" onClick={() => removeRecipe(recipe.id)}>Remove</button>
+          <button className="update" onClick={() => setPopupUpdateActive(!popupUpdateActive)}>Update</button>
           <button className="rate" onClick={() => {
             setPopupRatingActive(!popupRatingActive)}
             }>Rate this recipe</button>
         </div>
 
-        { popupRatingActive && <Popup recipeId={recipe.id} recipeTitle={recipe.title} setPopupRatingActive={setPopupRatingActive}/> }
+        { popupUpdateActive && <UpdatePopup id={recipe.id} setPopupUpdateActive={setPopupUpdateActive}/> }
+        { popupRatingActive && <RatingPopup recipeId={recipe.id} recipeTitle={recipe.title} setPopupRatingActive={setPopupRatingActive}/> }
       </div>
     )
   }
 
-  const Popup = ({recipeId, recipeTitle, setPopupRatingActive}) => {
+  const RatingPopup = ({recipeId, recipeTitle, setPopupRatingActive}) => {
     const [ratingForm, setRatingForm] = useState({
       rate: 0
     });
@@ -229,6 +257,55 @@ function App() {
           </div>
       </div>
     )
+  }
+
+  const UpdatePopup = ({id, setPopupUpdateActive}) => {
+    var prevTitle = "";
+    var prevDesc = "";
+    recipes.forEach(recipe => {
+      if (recipe.id === id) {
+        prevTitle = recipe.title;
+        prevDesc = recipe.desc;
+      }
+    })
+
+    const [updateForm, setUpdateForm] = useState({
+      title: prevTitle,
+      desc: prevDesc,
+    });
+
+    return (
+    <div className="popup">
+    <div className="popup-inner">
+      <h2>Update recipe</h2>
+      <form onSubmit={(e) => {
+        handleUpdate(e, id, updateForm);
+        setPopupUpdateActive(false);
+        }}>
+
+      <div className="form-group">
+        <label>Title</label>
+        <input 
+          type="text" 
+          value={updateForm.title} 
+          onChange={e => setUpdateForm({...updateForm, title:e.target.value})} />
+      </div>
+
+      <div className="form-group">
+        <label>Description</label>
+        <textarea 
+          type="text" 
+          value={updateForm.desc} 
+          onChange={e => setUpdateForm({...updateForm, desc:e.target.value})} />
+      </div>
+      <div className="buttons">
+        <button type="submit">Submit</button>
+        <button type="button" className="remove" onClick={() => setPopupUpdateActive(false)}>Cancel</button>
+      </div>
+
+      </form>
+      </div>
+    </div>)
   }
 
   const addRecipePopup = () => {
@@ -264,10 +341,10 @@ function App() {
               type="text"
               key={i} 
               value={ingredient} 
-              onChange={e => handleIngredient(e,i)} />
+              onChange={e => handleIngredient(e,i,form)} />
           ))
         }
-        <button type="button" onClick={handleIngredientCount}>Add Ingredient</button>
+        <button type="button" onClick={e => handleIngredientCount(form)}>Add Ingredient</button>
       </div>
 
       <div className="form-group">
@@ -278,10 +355,10 @@ function App() {
               type="text"
               key={i} 
               value={instruction} 
-              onChange={e => handleInstruction(e,i)} />
+              onChange={e => handleInstruction(e,i,form)} />
           ))
         }
-        <button type="button" onClick={handleInstructionCount}>Add Instruction</button>
+        <button type="button" onClick={e => handleInstructionCount(form)}>Add Instruction</button>
       </div>
 
       <div className="buttons">
