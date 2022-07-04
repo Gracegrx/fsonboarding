@@ -32,9 +32,11 @@ h1 {
 
 .recipes {
   display: grid;
-  max-width: 1024px;
+  /*max-width: 1024px;*/
+  max-width: 2048px;
   margin: 2rem auto 0;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  /*grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));*/
+  grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
   grid-gap: 1rem;
 }
 
@@ -185,4 +187,8 @@ input, textarea {
   to {
     transform: rotate(360deg);
   }
+}
+
+.cuisine {
+  float:right;
 }

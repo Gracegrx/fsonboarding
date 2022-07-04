@@ -18,6 +18,7 @@ function App() {
   const [form, setForm] = useState({
     title: "",
     desc: "",
+    cuisine: "",
     avgRating: 0.0,
     numRatings: 0,
     ingredients: [],
@@ -61,6 +62,7 @@ function App() {
     if (
       !form.title ||
       !form.desc ||
+      !form.cuisine ||
       !form.ingredients ||
       !form.instructions
     ) {
@@ -77,6 +79,7 @@ function App() {
     setForm({
       title: "",
       desc: "",
+      cuisine: "",
       numRatings: 0,
       avgRating: 0.0,
       ingredients: [],
@@ -153,7 +156,8 @@ function App() {
     e.preventDefault();
     if (
       !updateForm.title ||
-      !updateForm.desc
+      !updateForm.desc ||
+      !updateForm.cuisine
     ) {
       alert("please fill in all fields")
       return
@@ -165,7 +169,8 @@ function App() {
 
         updateDoc(curDocRef, {
           "title": updateForm.title,
-          "desc": updateForm.desc
+          "desc": updateForm.desc,
+          "cuisine": updateForm.cuisine
         });
         return;
       }
@@ -174,21 +179,21 @@ function App() {
 
   // For retrieve data from firestore
   const [search, setSearch] = useState("");
+  const [cuisineFilter, setCuisineFilter] = useState("");
   const [filteredRecipes, setFilteredRecipes] = useState([]);
 
   useEffect(() => {
     setFilteredRecipes(
         recipes.filter(
         (recipe) => {
-          if (recipe.title.toLowerCase().includes(search.toLowerCase())) {
-            recipe.selected = false;
+          if (recipe.title.toLowerCase().includes(search.toLowerCase()) &&
+              recipe.cuisine.toLowerCase().includes(cuisineFilter.toLowerCase())) {
             return true;
           }
-          recipe.selected = false;
           return false;
         })
     );
-  }, [search, recipes]);
+  }, [search, cuisineFilter, recipes]);
 
   const Recipe = ({recipe, i}) => {
     const [popupRatingActive, setPopupRatingActive] = useState(false);
@@ -197,8 +202,8 @@ function App() {
       <div className="recipe" key={recipe.id}>
         <h3>{ recipe.title }</h3>
         <p dangerouslySetInnerHTML={{ __html:recipe.desc }}></p>
-        <h4>Rating</h4>
-        <p>{ recipe.avgRating }</p>
+        <h4>Cuisine: { recipe.cuisine }</h4>
+        <h4>Rating: { recipe.avgRating }</h4>
 
         { recipe.viewing && <div>
           <h4>Ingredients</h4>
@@ -262,16 +267,19 @@ function App() {
   const UpdatePopup = ({id, setPopupUpdateActive}) => {
     var prevTitle = "";
     var prevDesc = "";
+    var prevCuisine = "";
     recipes.forEach(recipe => {
       if (recipe.id === id) {
         prevTitle = recipe.title;
         prevDesc = recipe.desc;
+        prevCuisine = recipe.cuisine;
       }
     })
 
     const [updateForm, setUpdateForm] = useState({
       title: prevTitle,
       desc: prevDesc,
+      cuisine: prevCuisine,
     });
 
     return (
@@ -297,6 +305,14 @@ function App() {
           type="text" 
           value={updateForm.desc} 
           onChange={e => setUpdateForm({...updateForm, desc:e.target.value})} />
+      </div>
+
+      <div className="form-group">
+        <label>Cuisine</label>
+        <textarea 
+          type="text" 
+          value={updateForm.cuisine} 
+          onChange={e => setUpdateForm({...updateForm, cuisine:e.target.value})} />
       </div>
       <div className="buttons">
         <button type="submit">Submit</button>
@@ -331,6 +347,14 @@ function App() {
           type="text" 
           value={form.desc} 
           onChange={e => setForm({...form, desc:e.target.value})} />
+      </div>
+
+      <div className="form-group">
+        <label>Cuisine</label>
+        <input 
+          type="text" 
+          value={form.cuisine} 
+          onChange={e => setForm({...form, cuisine:e.target.value})} />
       </div>
 
       <div className="form-group">
@@ -375,10 +399,18 @@ function App() {
     <div className="App">
       <h1>My Recipe Collection</h1>
 
+      <div className="cuisine">
+        <input
+          type="text"
+          placeholder="All cuisine"
+          onChange={(e) => setCuisineFilter(e.target.value)}
+        />
+      </div>
+
       <div>
         <input
           type="text"
-          placeholder="Search"
+          placeholder="Ingredient in mind"
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
